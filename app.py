@@ -43,8 +43,22 @@ def store_books(books):
             (book['title'], book['price'], book['rating'], book['description']))
     con.commit()
 
+def create_table():
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS books (
+            id SERIAL PRIMARY KEY,
+            title TEXT UNIQUE,
+            price TEXT,
+            rating TEXT,
+            description TEXT
+        )
+    """)
+    con.commit()
+
 st.title("Book Scraper")
 st.subheader("A simple app to scrape and query book data")
+
+create_table()
 
 if st.button("Scrape Books"):
     books = scrape_books()
