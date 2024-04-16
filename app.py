@@ -36,13 +36,14 @@ def scrape_books():
 
 def store_books(books):
     for book in books:
+        price = book['price'].replace('Â', '').replace('£', '')
         cur.execute("""
             INSERT INTO books (title, price, rating, description)
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (title) DO NOTHING""",
-            (book['title'], book['price'], book['rating'], book['description']))
+            (book['title'], price, book['rating'], book['description']))
     con.commit()
-
+    
 def create_table():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS books (
@@ -75,9 +76,9 @@ rating_filter = st.selectbox('Filter by rating', ('All', 'One', 'Two', 'Three', 
 cur.execute("""
     SELECT * FROM books
     WHERE (title ILIKE %s OR description ILIKE %s)
-    AND CAST(REPLACE(price, '£', '') AS FLOAT) BETWEEN %s AND %s
+    AND CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) BETWEEN %s AND %s
     AND (%s = 'All' OR rating = %s)
-    ORDER BY CAST(REPLACE(price, '£', '') AS FLOAT) ASC""",
+    ORDER BY CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) ASC""",
     (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter, rating_filter.lower()))
 
 books = cur.fetchall()
