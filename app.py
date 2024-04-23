@@ -65,25 +65,27 @@ def create_table():
     """)
     con.commit()
 
+def check_table_empty():
+    cur.execute("SELECT COUNT(*) FROM books")
+    count = cur.fetchone()['count']
+    return count == 0
+
 st.title("Book Scraper")
 st.subheader("A simple app to scrape and query book data")
 
 create_table()
 
-if 'books_scraped' not in st.session_state:
-    st.session_state.books_scraped = False
-
-if not st.session_state.books_scraped:
+if check_table_empty():
     if st.button("Scrape Books"):
         books = scrape_books()
         store_books(books)
         st.success(f"{len(books)} books scraped and stored successfully!")
-        st.session_state.books_scraped = True
     else:
         st.write("Click the 'Scrape Books' button if no results are displayed by default.")
 else:
     st.write("Books have already been scraped. Displaying the stored results.")
-
+    st.write("If you want to re-scrape the books, please manually clear the database table.")
+    
 # Filtering and sorting options
 search_query = st.text_input("Search by title or description")
 min_price = st.number_input("Minimum price", min_value=0.0, value=0.0, step=0.01)
