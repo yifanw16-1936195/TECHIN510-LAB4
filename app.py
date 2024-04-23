@@ -85,7 +85,7 @@ cur.execute("""
     AND CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) BETWEEN %s AND %s
     AND (%s = 'All' OR rating = %s)
     ORDER BY CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) ASC""",
-    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter, rating_filter.lower()))
+    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter))
 
 books = cur.fetchall()
 
