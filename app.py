@@ -81,20 +81,21 @@ rating_filter = st.selectbox('Filter by rating', ('All', 'One', 'Two', 'Three', 
 
 # Applying the filter and sort query
 rating_mapping = {
-    'One': 1,
-    'Two': 2,
-    'Three': 3,
-    'Four': 4,
-    'Five': 5
+    'All': 'All',
+    'One': 'One',
+    'Two': 'Two',
+    'Three': 'Three',
+    'Four': 'Four',
+    'Five': 'Five'
 }
 
 cur.execute("""
     SELECT * FROM books
     WHERE (title ILIKE %s OR description ILIKE %s)
     AND CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) BETWEEN %s AND %s
-    AND (%s = 'All' OR CAST(rating AS INTEGER) = %s)
+    AND (%s = 'All' OR rating = %s)
     ORDER BY CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) ASC""",
-    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter, rating_mapping.get(rating_filter, 0)))
+    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter, rating_mapping.get(rating_filter, 'All')))
 
 books = cur.fetchall()
 
