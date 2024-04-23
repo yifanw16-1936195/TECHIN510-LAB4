@@ -22,9 +22,15 @@ def scrape_books():
         title = book.h3.a['title']
         price = book.select_one('p.price_color').text
         rating = book.select_one('p.star-rating')['class'][1]
-        description = book.select_one('p.product_description')
-        description = description.text.strip() if description else 'No description available'
-
+        
+        # Navigate to the product page to get the description
+        product_url = URL + book.h3.a['href']
+        product_response = requests.get(product_url)
+        product_soup = BeautifulSoup(product_response.text, 'html.parser')
+        
+        description_element = product_soup.select('#product_description + p')
+        description = description_element[0].text.strip() if description_element else 'No description available'
+        
         books.append({
             'title': title,
             'price': price,
@@ -43,7 +49,7 @@ def store_books(books):
             ON CONFLICT (title) DO NOTHING""",
             (book['title'], price, book['rating'], book['description']))
     con.commit()
-    
+
 def create_table():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS books (
@@ -85,6 +91,6 @@ books = cur.fetchall()
 
 # Displaying books
 for book in books:
-    with st.expander(f"{book['title']} - {book['price']}"):
+    with st.expander(f"{book['title']} - £{book['price']}"):
         st.write(f"Rating: {book['rating'].capitalize()}")
         st.write(book['description'])
