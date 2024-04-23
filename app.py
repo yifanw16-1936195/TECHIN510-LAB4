@@ -85,7 +85,8 @@ if check_table_empty():
 else:
     st.write("Books have already been scraped. Displaying the stored results.")
     st.write("If you want to re-scrape the books, please manually clear the database table.")
-    
+    st.write("The scraped results will automatically update at midnight.")
+
 # Filtering and sorting options
 search_query = st.text_input("Search by title or description")
 min_price = st.number_input("Minimum price", min_value=0.0, value=0.0, step=0.01)
