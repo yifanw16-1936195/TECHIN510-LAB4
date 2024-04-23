@@ -13,30 +13,33 @@ con = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=RealDictCursor)
 cur = con.cursor()
 
 def scrape_books():
-    URL = 'https://books.toscrape.com/'
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
+    BASE_URL = 'https://books.toscrape.com/catalogue/'
     books = []
-    for book in soup.select('article.product_pod'):
-        title = book.h3.a['title']
-        price = book.select_one('p.price_color').text
-        rating = book.select_one('p.star-rating')['class'][1]
-        
-        # Navigate to the product page to get the description
-        product_url = URL + book.h3.a['href']
-        product_response = requests.get(product_url)
-        product_soup = BeautifulSoup(product_response.text, 'html.parser')
-        
-        description_element = product_soup.select('#product_description + p')
-        description = description_element[0].text.strip() if description_element else 'No description available'
-        
-        books.append({
-            'title': title,
-            'price': price,
-            'rating': rating,
-            'description': description
-        })
+
+    for page in range(1, 51):
+        url = f'{BASE_URL}page-{page}.html'
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        for book in soup.select('article.product_pod'):
+            title = book.h3.a['title']
+            price = book.select_one('p.price_color').text
+            rating = book.select_one('p.star-rating')['class'][1]
+
+            # Navigate to the product page to get the description
+            product_url = BASE_URL + book.h3.a['href']
+            product_response = requests.get(product_url)
+            product_soup = BeautifulSoup(product_response.text, 'html.parser')
+
+            description_element = product_soup.select('#product_description + p')
+            description = description_element[0].text.strip() if description_element else 'No description available'
+
+            books.append({
+                'title': title,
+                'price': price,
+                'rating': rating,
+                'description': description
+            })
 
     return books
 
@@ -67,17 +70,25 @@ st.subheader("A simple app to scrape and query book data")
 
 create_table()
 
-if st.button("Scrape Books"):
-    books = scrape_books()
-    store_books(books)
-    st.success(f"{len(books)} books scraped and stored successfully!")
+if 'books_scraped' not in st.session_state:
+    st.session_state.books_scraped = False
+
+if not st.session_state.books_scraped:
+    if st.button("Scrape Books"):
+        books = scrape_books()
+        store_books(books)
+        st.success(f"{len(books)} books scraped and stored successfully!")
+        st.session_state.books_scraped = True
+    else:
+        st.write("Click the 'Scrape Books' button if no results are displayed by default.")
+else:
+    st.write("Books have already been scraped. Displaying the stored results.")
 
 # Filtering and sorting options
 search_query = st.text_input("Search by title or description")
 min_price = st.number_input("Minimum price", min_value=0.0, value=0.0, step=0.01)
 max_price = st.number_input("Maximum price", min_value=0.0, value=100.0, step=0.01)
 rating_filter = st.selectbox('Filter by rating', ('All', 'One', 'Two', 'Three', 'Four', 'Five'))
-
 
 # Applying the filter and sort query
 rating_mapping = {
