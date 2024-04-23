@@ -78,14 +78,23 @@ min_price = st.number_input("Minimum price", min_value=0.0, value=0.0, step=0.01
 max_price = st.number_input("Maximum price", min_value=0.0, value=100.0, step=0.01)
 rating_filter = st.selectbox('Filter by rating', ('All', 'One', 'Two', 'Three', 'Four', 'Five'))
 
+
 # Applying the filter and sort query
+rating_mapping = {
+    'One': 1,
+    'Two': 2,
+    'Three': 3,
+    'Four': 4,
+    'Five': 5
+}
+
 cur.execute("""
     SELECT * FROM books
     WHERE (title ILIKE %s OR description ILIKE %s)
     AND CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) BETWEEN %s AND %s
-    AND (%s = 'All' OR rating = %s)
+    AND (%s = 'All' OR CAST(rating AS INTEGER) = %s)
     ORDER BY CAST(REPLACE(REPLACE(price, 'Â', ''), '£', '') AS FLOAT) ASC""",
-    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter))
+    (f'%{search_query}%', f'%{search_query}%', min_price, max_price, rating_filter, rating_mapping.get(rating_filter, 0)))
 
 books = cur.fetchall()
 
