@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 load_dotenv()
 
-con = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=RealDictCursor)
+con = psycopg2.connect(os.environ("DATABASE_URL"), cursor_factory=RealDictCursor)
 cur = con.cursor()
 
 def scrape_books():

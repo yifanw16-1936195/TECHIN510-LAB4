@@ -61,7 +61,7 @@ def store_books(cur, books):
             (book['title'], price, book['rating'], book['description']))
 
 def main():
-    DATABASE_URL = os.getenv('DATABASE_URL')
+    DATABASE_URL = os.environ('DATABASE_URL')
     con = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
     cur = con.cursor()
 
